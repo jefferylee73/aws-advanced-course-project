@@ -18,7 +18,18 @@ router.get("/elasticache/list_employee", async function (req, res) {
 router.get("/elasticache/list_employee_cached", async function (req, res) {
   console.log("/elasticache/list_employee_cached called");
   const start_time = new Date().getTime();
+  // get cache
+  const result_cached = await awsElasticacheService.get(emp_list_key);
+  if (result_cached) {
+    console.log("emp_list cache exists");
+    res.send({"result": result_cached,"processed_time": myUtilService.get_process_time(start_time)});
+    return;
+  }
+  
   const result = await empModelService.list_employee();
+  // set cache
+  await awsElasticacheService.set(emp_list_key, result);
+  
   res.send({"result": result,"processed_time": myUtilService.get_process_time(start_time)});
 });
 
